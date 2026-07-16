@@ -51,23 +51,15 @@ func PostConvertedString(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	localFile, err := os.Create(time.Now().UTC().String())
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	defer localFile.Close()
-
-	_, err = localFile.WriteString(convertedString)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
 	fileExt := filepath.Ext(header.Filename)
+	localFileName := time.Now().UTC().String() + fileExt
 
-	str, err := os.ReadFile(localFile.Name() + fileExt)
+	if err := os.WriteFile(localFileName, []byte(convertedString), 0644); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	str, err := os.ReadFile(localFileName)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
